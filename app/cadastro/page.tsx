@@ -1,0 +1,102 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema, RegisterData } from "@/schemas/registerSchema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { registerUser } from "@/lib/auth"; // 👈 agora usamos o service
+
+export default function RegisterPage() {
+  const form = useForm<RegisterData>({
+    resolver: zodResolver(registerSchema),
+    mode: "all",
+    criteriaMode: "firstError",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(data: RegisterData) {
+    try {
+      const result = await registerUser(data.name, data.email, data.password);
+      console.log("Resposta do backend:", result);
+      alert(result.message); // "Usuário cadastrado!"
+    } catch (err: any) {
+      console.error(err);
+      alert("Falha no cadastro: " + err.message);
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <Card className="w-[350px]">
+        <CardHeader>
+          <h2 className="text-xl font-bold">Cadastro</h2>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="text" placeholder="Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="email" placeholder="Email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="password" placeholder="Password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="button"
+                className="w-full"
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                Cadastrar
+              </Button>
+            </div>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
