@@ -12,48 +12,40 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        const email = credentials?.email as string | undefined;
+        const password = credentials?.password as string | undefined;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        if (!email || !password) return null;
 
-        if (!user) return null;
+        const user = await prisma.user.findUnique({ where: { email } });
 
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
-        if (!isValid) return null;
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role, // 🔹 aqui vem "admin" do seed
-        };
+        if (user && await bcrypt.compare(password, user.passwordHash)) {
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        }
+        return null;
       },
     }),
   ],
-
   session: { strategy: "jwt" },
-
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
+        token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
+      if (session.user) {
         session.user.role = token.role as string;
       }
       return session;
     },
-  },
-
-  pages: {
-    signIn: "/login",
   },
 });
 

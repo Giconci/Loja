@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // ✅ GET /api/products/:id → busca produto específico
 export async function GET(
-  req: Request,
-  context: { params: Promise<{ id: string }> } // <-- params é uma Promise
-) {
-  const { id } = await context.params; // ✅ precisa dar await
-  const productId = parseInt(id, 10);
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // 🔹 Antes era { params: { id?: string } }, agora é Promise<{ id: string }>
+): Promise<NextResponse> {
+  const { id } = await context.params; // 🔹 Precisa de await para "desembrulhar" a Promise
+  const productId = Number(id);
 
   if (isNaN(productId)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
@@ -28,30 +28,38 @@ export async function GET(
   }
 }
 
-// PUT /api/products/:id → atualiza produto
+// ✅ PUT /api/products/:id → atualiza produto
 export async function PUT(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
-  const productId = parseInt(id, 10);
-  const data = await req.json();
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // 🔹 Também ajustado para Promise
+): Promise<NextResponse> {
+  const { id } = await context.params; // 🔹 await para pegar o id
+  const productId = Number(id);
+  const data = await request.json();
 
-  const product = await prisma.product.update({
-    where: { id: productId },
-    data,
-  });
-  return NextResponse.json(product);
+  try {
+    const product = await prisma.product.update({
+      where: { id: productId },
+      data,
+    });
+    return NextResponse.json(product);
+  } catch (error) {
+    return NextResponse.json({ error: "Erro ao atualizar produto" }, { status: 500 });
+  }
 }
 
-// DELETE /api/products/:id → exclui produto
+// ✅ DELETE /api/products/:id → exclui produto
 export async function DELETE(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
-  const productId = parseInt(id, 10);
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // 🔹 Ajustado para Promise
+): Promise<NextResponse> {
+  const { id } = await context.params; // 🔹 await para pegar o id
+  const productId = Number(id);
 
-  await prisma.product.delete({ where: { id: productId } });
-  return NextResponse.json({ message: "Produto excluído" });
+  try {
+    await prisma.product.delete({ where: { id: productId } });
+    return NextResponse.json({ message: "Produto excluído" });
+  } catch (error) {
+    return NextResponse.json({ error: "Erro ao excluir produto" }, { status: 500 });
+  }
 }
