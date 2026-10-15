@@ -14,7 +14,6 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   role         String   @default("customer") // "admin" ou "customer"
-  // 🔄 RELAÇÃO: um usuário pode ter vários pedidos
   orders       Order[]
 }
 
@@ -23,20 +22,19 @@ model Product {
   name        String
   description String?
   price       Float
-  imageUrl    String?   // campo para imagem (mantido apenas uma vez)
+  imageUrl    String?   // campo opcional para imagem
   stock       Int      @default(0)
-  category    String?   // campo opcional para categoria (mantido apenas uma vez)
+  category    String?   // campo opcional para categoria
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // 🔄 RELAÇÃO: um produto pode aparecer em vários itens de pedido
   orderItems  OrderItem[]
 }
 
 model Order {
   id        Int       @id @default(autoincrement())
   user      User      @relation(fields: [userId], references: [id])
-  userId    String    // 🔄 ALTERADO: agora é String para bater com User.id
+  userId    String
   products  OrderItem[]
   createdAt DateTime  @default(now())
 }
@@ -52,7 +50,7 @@ model OrderItem {
 
 model HeroBanner {
   id        Int      @id @default(autoincrement())
-  desktop   String   // caminho da imagem desktop
-  mobile    String   // caminho da imagem mobile
+  desktop   String
+  mobile    String
   createdAt DateTime @default(now())
 }
