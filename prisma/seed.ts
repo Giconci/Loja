@@ -1,13 +1,15 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+
+const prisma = new PrismaClient();
 
 async function main() {
   const passwordHash = await bcrypt.hash("senha123", 10);
 
-  // 🔹 Cria ou mantém o usuário admin
+  // 🔹 Cria ou mantém o usuário admin (sem duplicar)
   await prisma.user.upsert({
     where: { email: "admin@teste.com" },
-    update: { passwordHash }, // pode atualizar campos se quiser
+    update: { passwordHash },
     create: {
       name: "Admin",
       email: "admin@teste.com",
@@ -16,30 +18,7 @@ async function main() {
     },
   });
 
-  // 🔹 Cria alguns produtos de exemplo
-  await prisma.product.createMany({
-    data: [
-      {
-        name: "Camiseta",
-        description: "Camiseta básica de algodão",
-        price: 59.9,
-        imageUrl: "/images/camiseta.png",
-        stock: 100,
-        category: "Roupas",
-      },
-      {
-        name: "Tênis",
-        description: "Tênis esportivo confortável",
-        price: 199.9,
-        imageUrl: "/images/tenis.png",
-        stock: 50,
-        category: "Calçados",
-      },
-    ],
-    skipDuplicates: true, // 🔹 evita duplicar se já existir
-  });
-
-  console.log("Seed concluído com admin e produtos!");
+  console.log("Seed concluído com admin!");
 }
 
 main()

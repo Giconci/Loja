@@ -1,51 +1,52 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// ✅ GET /api/products/:id → busca produto específico
+// GET /api/orders/:id
 export async function GET(
-  req: Request,
-  context: { params: Promise<{ id: string }> } // 🔹 Antes era { params: { id: string } }, agora é Promise<{ id: string }>
+  req: NextRequest,
+  context: any // 👈 simplifica e evita conflito de tipagem
 ) {
-  const { id } = await context.params; // 🔹 Precisa de await para "desembrulhar" a Promise
-  const productId = Number(id);
+  const { id } = context.params;
+  const orderId = Number(id);
+
+  if (isNaN(orderId)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
 
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-
-    if (!product) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 });
     }
-
-    return NextResponse.json(product);
-  } catch (error) {
-    return NextResponse.json({ error: "Erro ao buscar produto" }, { status: 500 });
+    return NextResponse.json(order);
+  } catch {
+    return NextResponse.json({ error: "Erro ao buscar pedido" }, { status: 500 });
   }
 }
 
-// ✅ PUT /api/products/:id → atualiza produto
-export async function PUT(
-  req: Request,
-  context: { params: Promise<{ id: string }> } // 🔹 Também ajustado para Promise
-) {
-  const { id } = await context.params; // 🔹 await para pegar o id
+// PUT /api/orders/:id
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = context.params;
+  const orderId = Number(id);
   const data = await req.json();
 
-  const product = await prisma.product.update({
-    where: { id: Number(id) },
-    data,
-  });
-  return NextResponse.json(product);
+  try {
+    const order = await prisma.order.update({ where: { id: orderId }, data });
+    return NextResponse.json(order);
+  } catch {
+    return NextResponse.json({ error: "Erro ao atualizar pedido" }, { status: 500 });
+  }
 }
 
-// ✅ DELETE /api/products/:id → exclui produto
-export async function DELETE(
-  req: Request,
-  context: { params: Promise<{ id: string }> } // 🔹 Ajustado para Promise
-) {
-  const { id } = await context.params; // 🔹 await para pegar o id
+// DELETE /api/orders/:id
+export async function DELETE(req: NextRequest, context: any) {
+  const { id } = context.params;
+  const orderId = Number(id);
 
-  await prisma.product.delete({ where: { id: Number(id) } });
-  return NextResponse.json({ message: "Produto excluído" });
+  try {
+    await prisma.order.delete({ where: { id: orderId } });
+    return NextResponse.json({ message: "Pedido excluído" });
+  } catch {
+    return NextResponse.json({ error: "Erro ao excluir pedido" }, { status: 500 });
+  }
 }

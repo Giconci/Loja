@@ -12,27 +12,29 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = credentials?.email as string | undefined;
-        const password = credentials?.password as string | undefined;
+        const email = credentials?.email;
+        const password = credentials?.password;
 
         if (!email || !password) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return null;
 
-        if (user && await bcrypt.compare(password, user.passwordHash)) {
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          };
-        }
-        return null;
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) return null;
+
+        // ✅ Retorna objeto compatível com User
+        return {
+          id: String(user.id),
+          name: user.name ?? "", // garante string
+          email: user.email,
+          role: user.role,
+        };
       },
     }),
   ],
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET, // ⚠️ precisa estar definido no .env
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -42,7 +44,7 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
+        (session.user as any).role = token.role as string;
       }
       return session;
     },

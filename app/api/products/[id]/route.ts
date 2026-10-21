@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// ✅ GET /api/products/:id → busca produto específico
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> } // 🔹 Antes era { params: { id?: string } }, agora é Promise<{ id: string }>
-): Promise<NextResponse> {
-  const { id } = await context.params; // 🔹 Precisa de await para "desembrulhar" a Promise
+// GET /api/products/:id → busca produto específico
+export async function GET(req: NextRequest, context: any) {
+  const { id } = await context.params; // ✅ precisa de await
   const productId = Number(id);
 
   if (isNaN(productId)) {
@@ -23,19 +20,16 @@ export async function GET(
     }
 
     return NextResponse.json(product);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao buscar produto" }, { status: 500 });
   }
 }
 
-// ✅ PUT /api/products/:id → atualiza produto
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> } // 🔹 Também ajustado para Promise
-): Promise<NextResponse> {
-  const { id } = await context.params; // 🔹 await para pegar o id
+// PUT /api/products/:id → atualiza produto
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params; // ✅ precisa de await
   const productId = Number(id);
-  const data = await request.json();
+  const data = await req.json();
 
   try {
     const product = await prisma.product.update({
@@ -43,23 +37,20 @@ export async function PUT(
       data,
     });
     return NextResponse.json(product);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao atualizar produto" }, { status: 500 });
   }
 }
 
-// ✅ DELETE /api/products/:id → exclui produto
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> } // 🔹 Ajustado para Promise
-): Promise<NextResponse> {
-  const { id } = await context.params; // 🔹 await para pegar o id
+// DELETE /api/products/:id → exclui produto
+export async function DELETE(req: NextRequest, context: any) {
+  const { id } = await context.params; // ✅ precisa de await
   const productId = Number(id);
 
   try {
     await prisma.product.delete({ where: { id: productId } });
     return NextResponse.json({ message: "Produto excluído" });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao excluir produto" }, { status: 500 });
   }
 }

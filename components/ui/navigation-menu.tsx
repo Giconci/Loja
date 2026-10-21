@@ -4,8 +4,8 @@ import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/naviga
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { signOut, useSession } from "next-auth/react"; // 👈 NextAuth
-import Link from "next/link"; // 👈 Next.js Link
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 function NavigationMenu({
   align = "start",
@@ -73,7 +73,7 @@ function NavigationMenuTrigger({
       className={cn(navigationMenuTriggerStyle(), "group", className)}
       {...props}
     >
-      {children}{" "}
+      {children}
       <ChevronDownIcon
         className="relative top-px ml-1 size-3 transition duration-300 group-data-popup-open/navigation-menu-trigger:rotate-180 group-data-open/navigation-menu-trigger:rotate-180"
         aria-hidden="true"
@@ -127,23 +127,6 @@ function NavigationMenuPositioner({
   );
 }
 
-function NavigationMenuLink({
-  className,
-  ...props
-}: NavigationMenuPrimitive.Link.Props) {
-  return (
-    <NavigationMenuPrimitive.Link
-      asChild
-      data-slot="navigation-menu-link"
-      className={cn(
-        "flex items-center gap-2 rounded-lg p-2 text-sm transition-all outline-none hover:bg-muted focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-muted/50",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
 function NavigationMenuIndicator({
   className,
   ...props
@@ -171,23 +154,32 @@ export function NavbarMenu() {
       <NavigationMenuList>
         {/* Home */}
         <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link href="/">Home</Link>
-          </NavigationMenuLink>
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-lg p-2 text-sm transition-all outline-none hover:bg-muted"
+          >
+            Home
+          </Link>
         </NavigationMenuItem>
 
         {/* Se não estiver logado → Cadastro e Login */}
         {!session && (
           <>
             <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/cadastro">Cadastro</Link>
-              </NavigationMenuLink>
+              <Link
+                href="/cadastro"
+                className="flex items-center gap-2 rounded-lg p-2 text-sm transition-all outline-none hover:bg-muted"
+              >
+                Cadastro
+              </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/login">Login</Link>
-              </NavigationMenuLink>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 rounded-lg p-2 text-sm transition-all outline-none hover:bg-muted"
+              >
+                Login
+              </Link>
             </NavigationMenuItem>
           </>
         )}
@@ -195,14 +187,12 @@ export function NavbarMenu() {
         {/* Se estiver logado → Logout */}
         {session && (
           <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="flex items-center gap-2 rounded-lg p-2 text-sm transition-all hover:bg-muted"
-              >
-                Sair
-              </button>
-            </NavigationMenuLink>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex items-center gap-2 rounded-lg p-2 text-sm transition-all hover:bg-muted"
+            >
+              Sair
+            </button>
           </NavigationMenuItem>
         )}
       </NavigationMenuList>
@@ -215,7 +205,6 @@ export {
   NavigationMenuContent,
   NavigationMenuIndicator,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
